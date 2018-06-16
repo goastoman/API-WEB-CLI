@@ -91,7 +91,9 @@ app.bindLogoutButton = function(){
 };
 
 //log the user out then redirect them
-app.logUserOut = function(){
+app.logUserOut = function(redirectUser){
+    //set redirectUser to default to true
+    redirectUser = typeof(redirectUser) == 'boolean' ? redirectUser : true;
     //get the current token id
     var tokenId = typeof(app.config.sessionToken.id) == 'string' ? app.config.sessionToken.id : false;
 
@@ -103,7 +105,9 @@ app.logUserOut = function(){
         //set the app.config token as false
         app.setSessionToken(false);
         //send the user to the logged out page
-        window.location = '/session/deleted';
+        if(redirectUser){
+            window.location = '/session/deleted';
+        };
     });
 };
 
@@ -142,8 +146,11 @@ app.bindForms = function(){
                     };
                 };
 
+                //if the method is DELETE the payload should be a queryStringObject instead
+                var queryStringObject = method == 'DELETE' ? payload : {};
+
                 //call the API
-                app.client.request(undefined, path, method, undefined, payload, function(statusCode, responsePayload){
+                app.client.request(undefined, path, method, queryStringObject, payload, function(statusCode, responsePayload){
                     //display an error on the form if needed
                     if(statusCode !== 200){
 
@@ -203,9 +210,14 @@ app.formResponseProcessor = function(formId,requestPayload,responsePayload){
     };
     //if forms saved successfully and they have success messages, show them
     var formsWithSuccessMessages = ['accountEdit1', 'accountEdit2'];
-        if(formsWithSuccessMessages.indexOf(formId) > -1){
-            document.querySelector("#"+formId+" .formSuccess").style.display = 'block';
-        };
+    if(formsWithSuccessMessages.indexOf(formId) > -1){
+        document.querySelector("#"+formId+" .formSuccess").style.display = 'block';
+    };
+    //if the user just deleted their account redirect them to the account-delete page
+    if(formId == 'accountEdit3'){
+        app.logUserOut(false);
+        window.location = '/account/deleted';
+    }
 };
   
 //get the session token from localstorage and set it in the app.config object
