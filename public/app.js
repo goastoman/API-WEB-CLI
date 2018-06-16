@@ -43,7 +43,7 @@ app.client.request = function(headers, path, method, queryStringObject, payload,
     //form the http request as a JSON
     var xhr = new XMLHttpRequest();
     xhr.open(method, requestUrl, true);
-    xhr.setRequestHeader('Content-Type' , 'application/json');
+    xhr.setRequestHeader('Content-type' , 'application/json');
 
     //for each header sent, add it to the request
     for(var headerKey in headers){
@@ -82,8 +82,8 @@ app.client.request = function(headers, path, method, queryStringObject, payload,
 
 //bind the form
 app.bindForms = function(){
-    if(document.querySelector('form')){
-        document.querySelector('form').addEventListener('submit', function(e){
+    if(document.querySelector("form")){
+        document.querySelector("form").addEventListener("submit", function(e){
 
             //stop it from submiting
             e.proventDefault();
@@ -92,13 +92,13 @@ app.bindForms = function(){
             var method = this.method.toUpperCase();
 
             //hide the error message if its currently shown due to a previous error
-            document.querySelector('#' + formId + ' .formError').style.display = 'hidden';
+            document.querySelector("#" + formId + " .formError").style.display = 'hidden';
 
             //turn the inputs into a payload
             var payload = {};
             var elements = this.elements;
             for(var i = 0; i < elements.length; i++){
-                if(elements[i].type !== ' submit'){
+                if(elements[i].type !== 'submit'){
                     var valueOfElement = elements[i].type == 'checkbox' ? elements[i].checked : elements[i].value;
                     payload[elements[i].name] = valueOfElement;
                 };
@@ -112,10 +112,10 @@ app.bindForms = function(){
                     var error = typeof(responsePayload.Error) == 'string' ? responsePayload.Error : 'Sorry, an error has occured. Please try again';
 
                     //set the formError field with the error text
-                    document.querySelector('#' + formId + ' .formError').innerHTML = error;
+                    document.querySelector("#" + formId + " .formError").innerHTML = error;
 
                     //show (unhide) the form error field on the form
-                    document.querySelector('#' + formId + ' .formError').style.display = 'block';
+                    document.querySelector("#" + formId + " .formError").style.display = 'block';
 
                 } else {
                     //if successful, send to form response processor
