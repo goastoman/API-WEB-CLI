@@ -43,7 +43,7 @@ app.client.request = function(headers, path, method, queryStringObject, payload,
     //form the http request as a JSON
     var xhr = new XMLHttpRequest();
     xhr.open(method, requestUrl, true);
-    xhr.setRequestHeader('Content-type' , 'application/json');
+    xhr.setRequestHeader("Content-type", "application/json");
 
     //for each header sent, add it to the request
     for(var headerKey in headers){
@@ -54,7 +54,7 @@ app.client.request = function(headers, path, method, queryStringObject, payload,
 
     //if there is a current session token set add that as a header
     if(app.config.sessionToken){
-        xhr.setRequestHeader('token', app.config.sessionToken.id);
+        xhr.setRequestHeader("token", app.config.sessionToken.id);
     };
 
     //when the request comes back handle the response
@@ -190,7 +190,7 @@ app.bindForms = function(){
                         };
                     } else {
                         //if successful, send to form response processor
-                        app.formResponseProcessor(formId,payload,responsePayload);
+                        app.formResponseProcessor(formId, payload, responsePayload);
                     };
                 });
             });
@@ -213,7 +213,7 @@ app.formResponseProcessor = function(formId,requestPayload,responsePayload){
             //display an error on the form if needed
             if(newStatusCode !== 200){
                 //set the formError field with the errir text
-                document.querySelector('#' + formId + ' .formError').innerHTML = 'Sorry, an error has occured. Please try again';
+                document.querySelector('#' + formId + ' .formError').innerHTML = 'Sorry, an error has occured. Please try again later';
 
                 //show (unhide) the form error field on the form
                 document.querySelector('#' + formId + ' .formError').style.display = 'block';
@@ -230,9 +230,9 @@ app.formResponseProcessor = function(formId,requestPayload,responsePayload){
         window.location = '/checks/all';
     };
     //if forms saved successfully and they have success messages, show them
-    var formsWithSuccessMessages = ['accountEdit1', 'accountEdit2'];
+    var formsWithSuccessMessages = ['accountEdit1', 'accountEdit2', 'checksEdit1'];
     if(formsWithSuccessMessages.indexOf(formId) > -1){
-        document.querySelector("#"+formId+" .formSuccess").style.display = 'block';
+        document.querySelector("#" + formId + " .formSuccess").style.display = 'block';
     };
     //if the user just deleted their account redirect them to the account-delete page
     if(formId == 'accountEdit3'){
@@ -241,7 +241,12 @@ app.formResponseProcessor = function(formId,requestPayload,responsePayload){
     };
 
     //if the user just create a new check successfully redirect back to the dashboard
-    if(formId == 'checkCreate'){
+    if(formId == 'checksCreate'){
+        window.location = '/checks/all';
+    };
+
+    //if the user just deleted a check, redirect them to the dashboard
+    if(formId == 'checksEdit2'){
         window.location = '/checks/all';
     };
 };
@@ -340,8 +345,8 @@ app.loadDataOnPage = function(){
 
     //logic for check details page
     if(primaryClass == 'checksEdit'){
-    app.loadChecksEditPage();
-  };
+        app.loadChecksEditPage();
+    };
 };
   
 //load the account edit page specifically
@@ -377,7 +382,7 @@ app.loadAccountEditPage = function(){
 };
 
 //load the dashboard page 
-app.loadCheckListPage = function(){
+app.loadChecksListPage = function(){
     //get the phone number from the current token or log the user out if none is there
     var phone = typeof(app.config.sessionToken.phone) == 'string' ? app.config.sessionToken.phone : false;
     if(phone){
@@ -409,13 +414,13 @@ app.loadCheckListPage = function(){
                                 var td3 = tr.insertCell(3);
                                 var td4 = tr.insertCell(4);
                                 td0.innerHTML = responsePayload.method.toUpperCase();
-                                td1.innerHTML = responsePayload.protocol+'://';
+                                td1.innerHTML = responsePayload.protocol + '://';
                                 td2.innerHTML = responsePayload.url;
                                 var state = typeof(responsePayload.state) == 'string' ? responsePayload.state : 'unknown';
                                 td3.innerHTML = state;
-                                td4.innerHTML = '<a href="/checks/edit?id='+responsePayload.id+'">View / Edit / Delete</a>';
+                                td4.innerHTML = '<a href="/checks/edit?id=' + responsePayload.id + '">View / Edit / Delete</a>';
                             } else {
-                                console.log('Error trying to load check ID: ', checkId)
+                                console.log("Error trying to load check ID: ", checkId)
                             };
                         });
                     });
@@ -444,41 +449,41 @@ app.loadChecksEditPage = function(){
     //get the check id from the query string, if none is found then redirect back to dashboard
     var id = typeof(window.location.href.split('=')[1]) == 'string' && window.location.href.split('=')[1].length > 0 ? window.location.href.split('=')[1] : false;
     if(id){
-      //fetch the check data
-      var queryStringObject = {
-        'id': id
-      };
-      app.client.request(undefined, 'api/checks', 'GET', queryStringObject, undefined, function(statusCode, responsePayload){
-        if(statusCode == 200){
-  
-          // Put the hidden id field into both forms
-          var hiddenIdInputs = document.querySelectorAll("input.hiddenIdInput");
-          for(var i = 0; i < hiddenIdInputs.length; i++){
-              hiddenIdInputs[i].value = responsePayload.id;
-          }
-  
-          // Put the data into the top form as values where needed
-          document.querySelector("#checksEdit1 .displayIdInput").value = responsePayload.id;
-          document.querySelector("#checksEdit1 .displayStateInput").value = responsePayload.state;
-          document.querySelector("#checksEdit1 .protocolInput").value = responsePayload.protocol;
-          document.querySelector("#checksEdit1 .urlInput").value = responsePayload.url;
-          document.querySelector("#checksEdit1 .methodInput").value = responsePayload.method;
-          document.querySelector("#checksEdit1 .timeoutInput").value = responsePayload.timeoutSeconds;
-          var successCodeCheckboxes = document.querySelectorAll("#checksEdit1 input.successCodesInput");
-          for(var i = 0; i < successCodeCheckboxes.length; i++){
-            if(responsePayload.successCodes.indexOf(parseInt(successCodeCheckboxes[i].value)) > -1){
-              successCodeCheckboxes[i].checked = true;
-            };
-          };
-        } else {
-          //if the request comes back as something other than 200, redirect back to dashboard
-          window.location = '/checks/all';
+        //fetch the check data
+        var queryStringObject = {
+            'id': id
         };
-      });
+        app.client.request(undefined, 'api/checks', 'GET', queryStringObject, undefined, function(statusCode, responsePayload){
+            if(statusCode == 200){
+    
+                //put the hidden id field into both forms
+                var hiddenIdInputs = document.querySelectorAll("input.hiddenIdInput");
+                for(var i = 0; i < hiddenIdInputs.length; i++){
+                    hiddenIdInputs[i].value = responsePayload.id;
+                };
+        
+                //put the data into the top form as values where needed
+                document.querySelector("#checksEdit1 .displayIdInput").value = responsePayload.id;
+                document.querySelector("#checksEdit1 .displayStateInput").value = responsePayload.state;
+                document.querySelector("#checksEdit1 .protocolInput").value = responsePayload.protocol;
+                document.querySelector("#checksEdit1 .urlInput").value = responsePayload.url;
+                document.querySelector("#checksEdit1 .methodInput").value = responsePayload.method;
+                document.querySelector("#checksEdit1 .timeoutInput").value = responsePayload.timeoutSeconds;
+                var successCodeCheckboxes = document.querySelectorAll("#checksEdit1 input.successCodesInput");
+                for(var i = 0; i < successCodeCheckboxes.length; i++){
+                    if(responsePayload.successCodes.indexOf(parseInt(successCodeCheckboxes[i].value)) > -1){
+                    successCodeCheckboxes[i].checked = true;
+                    };
+                };
+            } else {
+                //if the request comes back as something other than 200, redirect back to dashboard
+                window.location = '/checks/all';
+            };
+        });
     } else {
-      window.location = '/checks/all';
+        window.location = '/checks/all';
     };
-  };
+};
   
 //loop to renew token often
 app.tokenRenewalLoop = function(){
