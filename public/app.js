@@ -125,7 +125,7 @@ app.bindForms = function(){
                 var method = this.method.toUpperCase();
 
                 //hide the error message if its currently shown due to a previous error
-                document.querySelector("#" + formId + " .formError").style.display = 'hidden';
+                document.querySelector("#" + formId + " .formError").style.display = 'none';
 
                 //hide the success message (if it's currently shown due to a previous error)
                 if(document.querySelector("#"+formId+" .formSuccess")){
@@ -138,7 +138,7 @@ app.bindForms = function(){
                 for(var i = 0; i < elements.length; i++){
                     if(elements[i].type !== 'submit'){
                         //determine class of element and set value accordingly
-                        var classOfElement = typeof(element[i].classList.value) == 'string' && elements[i].classList.value.length > 0 ? elements[i].classList.value : '';
+                        var classOfElement = typeof(elements[i].classList.value) == 'string' && elements[i].classList.value.length > 0 ? elements[i].classList.value : '';
                         var valueOfElement = elements[i].type == 'checkbox' && classOfElement.indexOf('multiselect') == -1 ? elements[i].checked : classOfElement.indexOf('intval') == -1 ? elements[i].value : parseInt(elements[i].value);
                         var elementIsChecked = elements[i].checked;
                         //override the method of the form if the inputs name is _method
@@ -146,11 +146,15 @@ app.bindForms = function(){
                         if(nameOfElement == '_method'){
                             method = valueOfElement;
                         } else {
-                            // Create an payload field named "method" if the elements name is actually httpmethod
+                            //create an payload field named "method" if the elements name is actually httpmethod
                             if(nameOfElement == 'httpmethod'){
                                 nameOfElement = 'method';
                             };
-                            // If the element has the class "multiselect" add its value(s) as array elements
+                            //create an payload field named "id" if the elements name is actually uid
+                            if(nameOfElement == 'uid'){
+                                nameOfElement = 'id';
+                            };
+                            //if the element has the class "multiselect" add its value(s) as array elements
                             if(classOfElement.indexOf('multiselect') > -1){
                                 if(elementIsChecked){
                                     payload[nameOfElement] = typeof(payload[nameOfElement]) == 'object' && payload[nameOfElement] instanceof Array ? payload[nameOfElement] : [];
@@ -333,6 +337,11 @@ app.loadDataOnPage = function(){
     if(primaryClass == 'checksList'){
         app.loadChecksListPage();
     };
+
+    //logic for check details page
+    if(primaryClass == 'checksEdit'){
+    app.loadChecksEditPage();
+  };
 };
   
 //load the account edit page specifically
@@ -429,6 +438,47 @@ app.loadCheckListPage = function(){
         app.logUserOut();
     };
 };
+
+//load the checks edit page specifically
+app.loadChecksEditPage = function(){
+    //get the check id from the query string, if none is found then redirect back to dashboard
+    var id = typeof(window.location.href.split('=')[1]) == 'string' && window.location.href.split('=')[1].length > 0 ? window.location.href.split('=')[1] : false;
+    if(id){
+      //fetch the check data
+      var queryStringObject = {
+        'id': id
+      };
+      app.client.request(undefined, 'api/checks', 'GET', queryStringObject, undefined, function(statusCode, responsePayload){
+        if(statusCode == 200){
+  
+          // Put the hidden id field into both forms
+          var hiddenIdInputs = document.querySelectorAll("input.hiddenIdInput");
+          for(var i = 0; i < hiddenIdInputs.length; i++){
+              hiddenIdInputs[i].value = responsePayload.id;
+          }
+  
+          // Put the data into the top form as values where needed
+          document.querySelector("#checksEdit1 .displayIdInput").value = responsePayload.id;
+          document.querySelector("#checksEdit1 .displayStateInput").value = responsePayload.state;
+          document.querySelector("#checksEdit1 .protocolInput").value = responsePayload.protocol;
+          document.querySelector("#checksEdit1 .urlInput").value = responsePayload.url;
+          document.querySelector("#checksEdit1 .methodInput").value = responsePayload.method;
+          document.querySelector("#checksEdit1 .timeoutInput").value = responsePayload.timeoutSeconds;
+          var successCodeCheckboxes = document.querySelectorAll("#checksEdit1 input.successCodesInput");
+          for(var i = 0; i < successCodeCheckboxes.length; i++){
+            if(responsePayload.successCodes.indexOf(parseInt(successCodeCheckboxes[i].value)) > -1){
+              successCodeCheckboxes[i].checked = true;
+            };
+          };
+        } else {
+          //if the request comes back as something other than 200, redirect back to dashboard
+          window.location = '/checks/all';
+        };
+      });
+    } else {
+      window.location = '/checks/all';
+    };
+  };
   
 //loop to renew token often
 app.tokenRenewalLoop = function(){
@@ -464,4 +514,11 @@ app.init = function(){
 window.onload = function(){
     app.init();
 };
-  
+
+
+
+
+
+
+
+
